@@ -58,6 +58,7 @@ def load_map(filename='sample_grid.csv'):
 
     return type_matrix, temp_matrix, type_pivot, type_to_num, num_to_type
 
+
 # ===========================
 # 3. Cooling Effect Model
 # ===========================
@@ -69,6 +70,7 @@ def apply_cooling(candidates, temp_matrix, tree_species):
         mask = gaussian_filter(mask, sigma=tree_species[species]['decay'])
         cooled -= mask * 2  # Cooling multiplier
     return np.clip(cooled, 0, None)
+
 
 # ===========================
 # 4. Objective Function
@@ -140,7 +142,9 @@ def objective_function(candidates, type_matrix, temp_matrix, tree_species, type_
 
     return objective_value
 
-
+# ===========================
+# 5. Plotting
+# ===========================
 
 ## Visualization of cells type (road, building, green area, water)
 def generate_terrain_map(type_pivot, ax=None, show=True):
@@ -173,6 +177,7 @@ def generate_terrain_map(type_pivot, ax=None, show=True):
         plt.show()
 
     return fig, ax
+
 
 def generate_heatmap(temp_matrix, vmin=None, vmax=None, ax=None, show=True):
     """
@@ -338,20 +343,32 @@ def print_solution_elements(solution, heading='Optimized Solution'):
 
 def print_solution_histogram(solution, temp_matrix, tree_species, bins=30):
     """
-    Plot histogram comparing temperature distributions before and after cooling.
-
-    Parameters:
-    - original_map: 2D array (before cooling)
-    - cooled_map: 2D array (after cooling)
-    - bins: number of bins for the histogram
+    Plot a histogram comparing temperature distributions before and after cooling,
+    without borders on the bars.
     """
+    # Flatten original and cooled temperature maps
     orig_flat = temp_matrix.flatten()
-    cool_flat = calculate_reduced_heatmap(solution,temp_matrix, tree_species).flatten()
+    cool_flat = calculate_reduced_heatmap(solution, temp_matrix, tree_species).flatten()
 
     plt.figure(figsize=(10, 6))
-    plt.hist(orig_flat, bins=bins, alpha=0.6, label='Original', color='red', edgecolor='black')
-    plt.hist(cool_flat, bins=bins, alpha=0.6, label='Cooled', color='blue', edgecolor='black')
+    # Original temperatures (red), no bar borders
+    plt.hist(orig_flat,
+             bins=bins,
+             alpha=0.6,
+             label='Original',
+             color='red',
+             edgecolor='none',
+             linewidth=0)
+    # Cooled temperatures (blue), no bar borders
+    plt.hist(cool_flat,
+             bins=bins,
+             alpha=0.6,
+             label='Cooled',
+             color='blue',
+             edgecolor='none',
+             linewidth=0)
 
+    # Mean lines
     plt.axvline(np.mean(orig_flat), color='red', linestyle='dashed', linewidth=1.5)
     plt.axvline(np.mean(cool_flat), color='blue', linestyle='dashed', linewidth=1.5)
 
@@ -362,6 +379,7 @@ def print_solution_histogram(solution, temp_matrix, tree_species, bins=30):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
 
 def plot_comparison_original_heatmap(solution, temp_matrix, tree_species, vmin=None, vmax=None, use_heat_islands=False, show=True):
     """
@@ -479,8 +497,8 @@ def plot_solution_histogram_comparison(solution1, solution2, temp_matrix, tree_s
 
     # Plot histograms
     plt.figure(figsize=(10, 6))
-    plt.hist(cool_flat_1, bins=bins, alpha=0.6, label='Solution 1', color='blue', edgecolor='black')
-    plt.hist(cool_flat_2, bins=bins, alpha=0.6, label='Solution 2', color='green', edgecolor='black')
+    plt.hist(cool_flat_1, bins=bins, alpha=0.6, label='Solution 1', color='blue')
+    plt.hist(cool_flat_2, bins=bins, alpha=0.6, label='Solution 2', color='green')
 
     # Add mean lines
     plt.axvline(np.mean(cool_flat_1), color='blue', linestyle='dashed', linewidth=1.5)
@@ -545,13 +563,17 @@ def compare_solution_heatmaps(solution1, solution2, temp_matrix, tree_species,
     plt.tight_layout()
     plt.show()
 
-    # === Histogram ===
+
+# ===========================
+# 6. Comparisons
+# ===========================
+
     temp1_flat = temp1.flatten()
     temp2_flat = temp2.flatten()
 
     plt.figure(figsize=(10, 6))
-    plt.hist(temp1_flat, bins=30, alpha=0.6, label=title1, color='red', edgecolor='black')
-    plt.hist(temp2_flat, bins=30, alpha=0.6, label=title2, color='blue', edgecolor='black')
+    plt.hist(temp1_flat, bins=30, alpha=0.6, label=title1, color='red')
+    plt.hist(temp2_flat, bins=30, alpha=0.6, label=title2, color='blue')
 
     plt.axvline(np.mean(temp1_flat), color='red', linestyle='dashed', linewidth=1.5)
     plt.axvline(np.mean(temp2_flat), color='blue', linestyle='dashed', linewidth=1.5)
@@ -564,8 +586,9 @@ def compare_solution_heatmaps(solution1, solution2, temp_matrix, tree_species,
     plt.tight_layout()
     plt.show()
 
-
-
+# ===========================
+# 7. Multiple-Run
+# ===========================
 
 def evaluate_multiple_runs(runs, type_matrix, temp_matrix, budget_max, type_to_num, tree_species):
     stats = [[], [], [], []]
@@ -605,6 +628,9 @@ def evaluate_multiple_runs(runs, type_matrix, temp_matrix, budget_max, type_to_n
 
     return stats
 
+# ===========================
+# 8. Summary
+# ===========================
 
 def summarize_algorithm_runs(stats, algorithms):
     """
@@ -732,9 +758,8 @@ def summarize_algorithm_runs(stats, algorithms):
     return summary_df
 
 
-
 # ===========================
-# 6. Optimization - Random insertion
+# 9. Optimization - Random insertion
 # ===========================
 
 def random_insertion(type_matrix, budget_max, type_to_num, tree_species, cost_factor=1.5):
